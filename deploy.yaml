@@ -1,0 +1,29 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  namespace: monitor
+  name: monitor-gateway
+  annotations:
+    kubernetes.io/ingress.class: alb # 使用aws的alb负载均衡器
+    alb.ingress.kubernetes.io/scheme: internet-facing # 创建外网alb
+    alb.ingress.kubernetes.io/inbound-cidrs: 0.0.0.0/0 # 允许访问的IP
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:me-south-1:782833322575:certificate/cf6bb38a-428a-479e-b89c-6351dafa2232 # ssl证书的arn,如果需要多个ssl证书，用逗号分隔
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]' # 监听80和443
+    alb.ingress.kubernetes.io/ssl-redirect: '443' # 直接将80重定向到443
+spec:
+  rules:
+    - host: prometheus.domain.com
+      http:
+        paths:
+        - path: /*
+          backend:
+              serviceName: prometheus
+              servicePort: 9090
+    - host: grafana.domain.com         
+      http:
+        paths:
+        - path: /*
+          backend:
+              serviceName: grafana
+              servicePort: 3000
